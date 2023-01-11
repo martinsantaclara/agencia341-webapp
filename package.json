@@ -1,0 +1,43 @@
+{
+    "name": "agencia341-webapp",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "explorer http://localhost:3000 & next dev",
+        "build": "next build",
+        "start": "next start",
+        "vercel-build": "prisma generate && next build",
+        "prisma:generate": "prisma generate",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@hookform/resolvers": "^2.9.8",
+        "@prisma/client": "^4.5.0",
+        "axios": "^0.27.2",
+        "bootstrap": "^5.2.2",
+        "date-fns": "^2.29.3",
+        "mysql2": "^2.3.3",
+        "next": "12.2.5",
+        "nextjs-progressbar": "0.0.14",
+        "prisma": "^4.5.0",
+        "react": "18.2.0",
+        "react-data-table-component": "^7.5.3",
+        "react-datepicker": "^4.8.0",
+        "react-dom": "18.2.0",
+        "react-hook-form": "^7.34.2",
+        "react-hot-toast": "^2.4.0",
+        "react-icons": "^4.4.0",
+        "react-imask": "^6.4.3",
+        "react-notifications-component": "^4.0.1",
+        "react-to-print": "^2.14.7",
+        "react-tooltip": "^4.4.0",
+        "reactstrap": "^9.1.4",
+        "sequelize": "^6.23.2",
+        "styled-components": "^5.3.5",
+        "yup": "^0.32.11"
+    },
+    "devDependencies": {
+        "eslint": "8.22.0",
+        "eslint-config-next": "12.2.5"
+    }
+}

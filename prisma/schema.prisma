@@ -1,0 +1,170 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["transactionApi"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model configuracion {
+  id                   Int       @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  idVendedorAgencia    Int?      @db.UnsignedInt
+  PorcentajeAgencia    Float?    @db.Float
+  PorcentajeVendedores Float?    @db.Float
+  ImprimeResumen       Int?      @db.TinyInt
+  vendedor             vendedor? @relation(fields: [idVendedorAgencia], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_vendedor_agencia")
+
+  @@index([idVendedorAgencia], map: "fk_vendedor_agencia_idx")
+}
+
+model localidad {
+  id              Int        @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  NombreLocalidad String?    @unique(map: "NombreLocalidad_UNIQUE") @db.VarChar(45)
+  vendedor        vendedor[]
+}
+
+model maquina {
+  id              Int               @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  NroMaquina      String            @unique(map: "NroMaquina_UNIQUE") @db.VarChar(3)
+  Descripcion     String?           @db.VarChar(45)
+  Activa          Int?              @db.TinyInt
+  vendedorId      Int?              @db.UnsignedInt
+  vendedor        vendedor?         @relation(fields: [vendedorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_maquina_vendedor")
+  resumenxmaquina resumenxmaquina[]
+  ventasxmaquina  ventasxmaquina[]
+
+  @@index([vendedorId], map: "fk_maquina_vendedor_idx")
+}
+
+model vendedor {
+  id               Int                @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  ApellidoVendedor String?            @db.VarChar(45)
+  NombreVendedor   String?            @db.VarChar(45)
+  Activo           Int?               @default(1) @db.TinyInt
+  Domicilio        String?            @db.VarChar(45)
+  localidadId      Int?               @db.UnsignedInt
+  Telefono         String?            @db.VarChar(45)
+  localidad        localidad?         @relation(fields: [localidadId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_vendedor_localidad")
+  configuracion    configuracion[]
+  maquina          maquina[]
+  resumenxmaquina  resumenxmaquina[]
+  resumenxvendedor resumenxvendedor[]
+  ventasxmaquina   ventasxmaquina[]
+  ventasxvendedor  ventasxvendedor[]
+
+  @@index([localidadId], map: "fk_vendedor_localidad_idx")
+}
+
+model ventasxdia {
+  id                 Int       @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  FechaVenta         DateTime? @db.Date
+  VentaAgencia       Float?
+  VentaVendedores    Float?
+  ComisionAgencia    Float?
+  ComisionVendedores Float?
+  Blocked            Int?      @default(0) @db.TinyInt
+  sorteoId           Int?      @db.UnsignedInt
+  OrdenSorteo        Int?      @db.UnsignedInt
+  NumeroSorteo       Int?      @db.UnsignedInt
+  sorteo             sorteo?   @relation(fields: [sorteoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ventasxdia_sorteo")
+
+  @@unique([FechaVenta, sorteoId], map: "comp_UNIQUE")
+  @@index([sorteoId], map: "fk_ventasxdia_sorteo_idx")
+}
+
+model ventasxmaquina {
+  id               Int       @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  FechaVenta       DateTime? @db.Date
+  ImporteVenta     Float?
+  ComisionVendedor Float?
+  ComisionAgencia  Float?
+  vendedorId       Int?      @db.UnsignedInt
+  maquinaId        Int?      @db.UnsignedInt
+  sorteoId         Int?      @db.UnsignedInt
+  maquina          maquina?  @relation(fields: [maquinaId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_maquina")
+  sorteo           sorteo?   @relation(fields: [sorteoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_sorteo")
+  vendedor         vendedor? @relation(fields: [vendedorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_vendedor")
+
+  @@unique([FechaVenta, vendedorId, maquinaId, sorteoId], map: "comp_UNIQUE")
+  @@index([maquinaId], map: "fk_maquina_idx")
+  @@index([vendedorId], map: "fk_vendedor_idx")
+  @@index([sorteoId], map: "fk_sorteo_idx")
+}
+
+model ventasxvendedor {
+  id         Int       @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  Fecha      DateTime? @db.Date
+  Venta      Float?
+  Comision   Float?
+  vendedorId Int?      @db.UnsignedInt
+  sorteoId   Int?      @db.UnsignedInt
+  sorteo     sorteo?   @relation(fields: [sorteoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ventas_sorteo")
+  vendedor   vendedor? @relation(fields: [vendedorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ventas_vendedor")
+
+  @@unique([Fecha, vendedorId, sorteoId], map: "comp_UNIQUE")
+  @@index([vendedorId], map: "fk_ventas_vendedor_idx")
+  @@index([sorteoId], map: "fk_ventas_sorteo_idx")
+}
+
+model sorteo {
+  id              Int               @id @unique(map: "idSorteo_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  OrdenSorteo     Int?              @unique(map: "OrdenSorteo_UNIQUE") @db.UnsignedInt
+  NombreSorteo    String?           @unique(map: "NombreSorteo_UNIQUE") @db.VarChar(45)
+  FechaSorteo     DateTime?         @db.Date
+  NumeroSorteo    Int?
+  ventasxdia      ventasxdia[]
+  ventasxmaquina  ventasxmaquina[]
+  ventasxvendedor ventasxvendedor[]
+}
+
+model resumenxdia {
+  id                 Int       @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  FechaVenta         DateTime? @unique(map: "FechaVenta_UNIQUE") @db.Date
+  VentaAgencia       Float?    @default(0)
+  VentaVendedores    Float?    @default(0)
+  ComisionAgencia    Float?    @default(0)
+  ComisionVendedores Float?    @default(0)
+  Gastos             Float?    @default(0)
+}
+
+model resumenxmaquina {
+  id               Int       @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  FechaVenta       DateTime? @db.Date
+  ImporteVenta     Float?
+  ComisionVendedor Float?
+  ComisionAgencia  Float?
+  vendedorId       Int?      @db.UnsignedInt
+  maquinaId        Int?      @db.UnsignedInt
+  maquina          maquina?  @relation(fields: [maquinaId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_resumenmaquina_maquina")
+  vendedor         vendedor? @relation(fields: [vendedorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_resumenmaquina_vendedor")
+
+  @@unique([FechaVenta, maquinaId], map: "comp_UNIQUE")
+  @@index([maquinaId], map: "fk_resumenmaquina_maquina_idx")
+  @@index([vendedorId], map: "fk_resumenmaquina_vendedor_idx")
+}
+
+model resumenxvendedor {
+  id         Int       @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  Fecha      DateTime? @db.Date
+  Venta      Float?
+  Comision   Float?
+  vendedorId Int?      @db.UnsignedInt
+  vendedor   vendedor? @relation(fields: [vendedorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_resumenvendedor_vendedor")
+
+  @@index([vendedorId], map: "fk_resumenvendedor_vendedor_idx")
+}
+
+model cierremensual {
+  id                 Int       @id @unique(map: "id_UNIQUE") @default(autoincrement()) @db.UnsignedInt
+  Fecha              DateTime? @db.Date
+  VentaAgencia       Float?    @default(0)
+  VentaVendedores    Float?    @default(0)
+  ComisionAgencia    Float?    @default(0)
+  ComisionVendedores Float?    @default(0)
+  Gastos             Float?    @default(0)
+  Honorarios         Float?    @default(0)
+  Impuestos          Float?    @default(0)
+  Otros              Float?    @default(0)
+}
